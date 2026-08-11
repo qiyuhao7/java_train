@@ -1,0 +1,12 @@
+server:
+  port: 9099
+
+spring:
+  application:
+    name: speed4j-auth
+
+# JWT 配置
+auth:
+  token:
+    secret: my-secret-key-for-training-at-least-32-bytes
+    expire-minutes: 120

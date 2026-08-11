@@ -1,0 +1,13 @@
+server:
+  port: 9099
+  shutdown: graceful
+
+spring:
+  application:
+    name: training-service
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics

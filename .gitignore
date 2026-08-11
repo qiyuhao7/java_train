@@ -1,0 +1,26 @@
+# 构建产物
+target/
+build/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.class
+
+# 系统
+.DS_Store
+Thumbs.db
+
+# 环境配置（含密码）
+.env
+application-local.yml
+
+# 日志
+logs/
+*.log
+
+# 本地练习产物
+training-workspace/
+hotfix-workspace/
+remote-origin.git/

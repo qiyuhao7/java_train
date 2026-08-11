@@ -1,0 +1,13 @@
+server:
+  port: 9099
+  shutdown: graceful
+
+spring:
+  application:
+    name: container-app
+  lifecycle:
+    timeout-per-shutdown-phase: 25s   # 优雅停机等待时间
+
+logging:
+  level:
+    root: INFO

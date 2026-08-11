@@ -1,0 +1,46 @@
+# Service：集群内稳定访问入口
+apiVersion: v1
+kind: Service
+metadata:
+  name: training-app-svc
+  namespace: training-prod
+  labels:
+    app: training-app
+spec:
+  selector:
+    app: training-app
+  ports:
+    - name: http
+      port: 80
+      targetPort: 9099
+      protocol: TCP
+  type: ClusterIP
+
+---
+# Ingress：外部域名路由
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: training-ingress
+  namespace: training-prod
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "60"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - training.company.com
+      secretName: training-tls
+  rules:
+    - host: training.company.com
+      http:
+        paths:
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: training-app-svc
+                port:
+                  number: 80

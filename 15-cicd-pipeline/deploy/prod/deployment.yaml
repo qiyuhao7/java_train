@@ -1,0 +1,74 @@
+# 生产环境 Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: training-app
+  namespace: training-prod
+  labels:
+    app: training-app
+    version: "${IMAGE_TAG}"
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1          # 滚动更新时最多多 1 个 Pod
+      maxUnavailable: 0    # 不允许有不可用的 Pod
+  selector:
+    matchLabels:
+      app: training-app
+  template:
+    metadata:
+      labels:
+        app: training-app
+    spec:
+      terminationGracePeriodSeconds: 30  # 优雅停机等待时间
+      containers:
+        - name: app
+          image: registry.company.com/training-service:${IMAGE_TAG}
+          ports:
+            - containerPort: 9099
+              name: http
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "prod"
+            - name: JAVA_OPTS
+              value: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -XX:+UseG1GC"
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: db-password
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "512Mi"
+            limits:
+              cpu: "2000m"
+              memory: "2Gi"
+          # 存活探针：失败则重启容器
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: 9099
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          # 就绪探针：失败则从 Service 摘除流量
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 9099
+            initialDelaySeconds: 30
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          # 启动探针：给慢启动应用更多时间
+          startupProbe:
+            httpGet:
+              path: /api/health
+              port: 9099
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            failureThreshold: 12  # 最多等 60 秒

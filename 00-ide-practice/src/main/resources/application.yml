@@ -1,0 +1,10 @@
+server:
+  port: 9099
+
+spring:
+  application:
+    name: ide-practice
+
+# 练习 DevTools 热部署时，改这里的值看日志
+app:
+  version: 1.0.0

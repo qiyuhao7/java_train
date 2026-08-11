@@ -1,0 +1,22 @@
+server:
+  port: 9099
+
+spring:
+  application:
+    name: mybatisplus-transaction
+  datasource:
+    url: jdbc:postgresql://localhost:5432/training
+    username: postgres
+    password: postgres123
+    driver-class-name: org.postgresql.Driver
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl   # 开发时打印 SQL
+  global-config:
+    db-config:
+      logic-delete-field: isDeleted      # 逻辑删除字段
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+      id-type: auto

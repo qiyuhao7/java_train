@@ -1,0 +1,11 @@
+server:
+  port: 9099
+
+spring:
+  application:
+    name: todo-service
+
+# 自定义配置
+app:
+  name: 培训待办系统
+  version: 1.0.0

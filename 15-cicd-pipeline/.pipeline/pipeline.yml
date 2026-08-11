@@ -1,0 +1,118 @@
+# 飞云 CI/CD 流水线配置
+# 触发条件：push 到 develop/main 分支，或创建 MR
+
+variables:
+  APP_NAME: training-service
+  REGISTRY: registry.company.com
+  IMAGE_TAG: ${GIT_COMMIT_SHA}
+
+stages:
+  # ===== 阶段1：代码检查 =====
+  - name: code-check
+    steps:
+      - name: sonarqube-scan
+        image: sonarsource/sonar-scanner:5
+        script:
+          - sonar-scanner
+            -Dsonar.projectKey=${APP_NAME}
+            -Dsonar.sources=src/main/java
+            -Dsonar.host.url=${SONAR_HOST}
+        when:
+          event: merge_request
+
+  # ===== 阶段2：编译构建 =====
+  - name: build
+    steps:
+      - name: maven-build
+        image: maven:3.9-eclipse-temurin-11
+        script:
+          - mvn clean package -DskipTests -B
+        cache:
+          key: maven-repo-${CI_COMMIT_REF_SLUG}
+          paths:
+            - ~/.m2/repository
+        artifacts:
+          paths:
+            - target/*.jar
+          expire_in: 1h
+
+  # ===== 阶段3：单元测试 =====
+  - name: test
+    steps:
+      - name: unit-test
+        image: maven:3.9-eclipse-temurin-11
+        script:
+          - mvn test -B
+        artifacts:
+          reports:
+            junit: target/surefire-reports/*.xml
+          when: always
+
+  # ===== 阶段4：镜像构建与推送 =====
+  - name: docker
+    steps:
+      - name: build-and-push
+        script:
+          - docker login -u ${DOCKER_USER} -p ${DOCKER_PASSWORD} ${REGISTRY}
+          - docker build -t ${REGISTRY}/${APP_NAME}:${IMAGE_TAG} .
+          - docker tag ${REGISTRY}/${APP_NAME}:${IMAGE_TAG} ${REGISTRY}/${APP_NAME}:latest
+          - docker push ${REGISTRY}/${APP_NAME}:${IMAGE_TAG}
+          - docker push ${REGISTRY}/${APP_NAME}:latest
+        when:
+          branch: [develop, main]
+
+  # ===== 阶段5：部署测试环境 =====
+  - name: deploy-test
+    steps:
+      - name: deploy
+        type: kubernetes
+        config:
+          cluster: test-cluster
+          namespace: training-test
+          manifest: deploy/test/deployment.yaml
+          variables:
+            IMAGE_TAG: ${IMAGE_TAG}
+        when:
+          branch: develop
+
+  # ===== 阶段6：部署生产（需审批）=====
+  - name: deploy-prod
+    steps:
+      - name: approval
+        type: manual
+        approvers:
+          - tech-lead
+          - ops-team
+        timeout: 24h
+      - name: deploy
+        type: kubernetes
+        config:
+          cluster: prod-cluster
+          namespace: training-prod
+          manifest: deploy/prod/deployment.yaml
+          variables:
+            IMAGE_TAG: ${IMAGE_TAG}
+          strategy: rolling
+        when:
+          branch: main
+
+  # ===== 阶段7：发布验证 =====
+  - name: verify
+    steps:
+      - name: smoke-test
+        script:
+          - sleep 30  # 等待 Pod Ready
+          - |
+            for i in $(seq 1 5); do
+              STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://training.company.com/api/health)
+              if [ "$STATUS" = "200" ]; then
+                echo "✅ 健康检查通过"
+                exit 0
+              fi
+              echo "等待服务就绪... ($i/5)"
+              sleep 10
+            done
+            echo "❌ 健康检查失败"
+            exit 1
+        when:
+          branch: main

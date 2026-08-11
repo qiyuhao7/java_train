@@ -1,0 +1,41 @@
+# ConfigMap：非敏感配置
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: training-prod
+data:
+  application-prod.yml: |
+    server:
+      port: 9099
+      shutdown: graceful
+    spring:
+      lifecycle:
+        timeout-per-shutdown-phase: 25s
+    logging:
+      level:
+        root: INFO
+        com.training: INFO
+    management:
+      endpoints:
+        web:
+          exposure:
+            include: health,info,prometheus
+      endpoint:
+        health:
+          show-details: when_authorized
+
+---
+# Secret：敏感信息（base64 编码）
+# 实际生产中使用 Sealed Secrets 或外部密钥管理
+apiVersion: v1
+kind: Secret
+metadata:
+  name: app-secrets
+  namespace: training-prod
+type: Opaque
+data:
+  # echo -n 'prod-password-123' | base64
+  db-password: cHJvZC1wYXNzd29yZC0xMjM=
+  # echo -n 'redis-password-456' | base64
+  redis-password: cmVkaXMtcGFzc3dvcmQtNDU2

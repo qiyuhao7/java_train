@@ -1,0 +1,47 @@
+# 测试环境 Deployment（简化版）
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: training-app
+  namespace: training-test
+  labels:
+    app: training-app
+spec:
+  replicas: 1  # 测试环境单副本
+  selector:
+    matchLabels:
+      app: training-app
+  template:
+    metadata:
+      labels:
+        app: training-app
+    spec:
+      containers:
+        - name: app
+          image: registry.company.com/training-service:${IMAGE_TAG}
+          ports:
+            - containerPort: 9099
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "test"
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:postgresql://test-db:5432/training"
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "256Mi"
+            limits:
+              cpu: "1000m"
+              memory: "1Gi"
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: 9099
+            initialDelaySeconds: 60
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 9099
+            initialDelaySeconds: 30
+            periodSeconds: 10
