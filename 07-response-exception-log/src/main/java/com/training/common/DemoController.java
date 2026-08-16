@@ -4,6 +4,7 @@ import com.training.common.exception.BusinessException;
 import com.training.common.exception.NotFoundException;
 import com.training.common.response.ApiResponse;
 import com.training.common.response.ResultCode;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.constraints.Min;
@@ -11,8 +12,10 @@ import javax.validation.constraints.NotBlank;
 
 /**
  * 演示接口：触发各类响应和异常
+ * @Validated：启用 @RequestParam/@PathVariable 上的参数校验
  */
 @RestController
+@Validated
 @RequestMapping("/api/demo")
 public class DemoController {
 

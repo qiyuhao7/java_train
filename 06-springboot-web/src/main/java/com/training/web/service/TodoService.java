@@ -3,7 +3,9 @@ package com.training.web.service;
 import com.training.web.dto.CreateTodoDTO;
 import com.training.web.dto.UpdateTodoDTO;
 import com.training.web.vo.TodoVO;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -37,7 +39,7 @@ public class TodoService {
     public TodoVO getById(Long id) {
         TodoVO todo = store.get(id);
         if (todo == null) {
-            throw new NoSuchElementException("待办不存在: " + id);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "待办不存在: " + id);
         }
         return todo;
     }
@@ -68,7 +70,7 @@ public class TodoService {
 
     public void delete(Long id) {
         if (store.remove(id) == null) {
-            throw new NoSuchElementException("待办不存在: " + id);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "待办不存在: " + id);
         }
     }
 
