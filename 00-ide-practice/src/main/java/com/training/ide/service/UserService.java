@@ -90,8 +90,8 @@ public class UserService {
         BigDecimal discount = user.getVip() ? new BigDecimal("0.85") : new BigDecimal("0.90");
 
         BigDecimal payAmount = order.getAmount()
-            .multiply(discount)
-            .setScale(2, RoundingMode.HALF_UP);
+                .multiply(discount)
+                .setScale(2, RoundingMode.HALF_UP);
         return payAmount;
     }
 

@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Maven settings.xml 示例（对齐培训笔记第05期 2.3 节）
+  复制到 ~/.m2/settings.xml 即可生效（用户级，优先于 $MAVEN_HOME/conf/settings.xml）
+
+  本示例包含：
+  1. 本地仓库路径
+  2. 阿里云镜像（国内加速，必配）
+  3. 公司私服（注释状态，按需启用）
+  4. 服务器认证（私服需要账号时）
+  5. 全局 JDK 11 profile
+
+  注意事项：
+  - 修改后无需重启，下次构建自动生效
+  - 私服地址/账号请替换为公司实际值
+-->
+<settings xmlns="http://maven.apache.org/SETTINGS/1.2.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.2.0
+          https://maven.apache.org/xsd/settings-1.2.0.xsd">
+
+    <!-- 1. 本地仓库路径（默认 ~/.m2/repository，可自定义） -->
+    <localRepository>${user.home}/.m2/repository</localRepository>
+
+    <!-- 2. 镜像配置 -->
+    <mirrors>
+        <!-- 阿里云镜像：国内下载加速 -->
+        <mirror>
+            <id>aliyun</id>
+            <name>Aliyun Maven</name>
+            <mirrorOf>*</mirrorOf>
+            <url>https://maven.aliyun.com/repository/public</url>
+        </mirror>
+
+        <!-- 公司私服镜像：取消注释并替换地址后启用
+        <mirror>
+            <id>nexus</id>
+            <name>Company Nexus</name>
+            <mirrorOf>*</mirrorOf>
+            <url>http://nexus.company.com/repository/maven-public/</url>
+        </mirror>
+        -->
+    </mirrors>
+
+    <!-- 3. 服务器认证：私服需要账号密码时（id 需与 mirror 或 pom 的 id 一致） -->
+    <servers>
+        <!--
+        <server>
+            <id>nexus</id>
+            <username>dev-user</username>
+            <password>dev-password</password>
+        </server>
+        -->
+    </servers>
+
+    <!-- 4. 全局 profile -->
+    <profiles>
+        <profile>
+            <id>jdk-11</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <maven.compiler.source>11</maven.compiler.source>
+                <maven.compiler.target>11</maven.compiler.target>
+            </properties>
+        </profile>
+    </profiles>
+
+    <!-- 5. 激活的 profile -->
+    <activeProfiles>
+        <activeProfile>jdk-11</activeProfile>
+    </activeProfiles>
+</settings>
